@@ -27,16 +27,11 @@ public class ProductController {
     public List<ProductDto> getProducts(
             @RequestParam(required = false, name = "categoryId", defaultValue = "") Byte categoryId
     ) {
-        if (categoryId == null || categoryId == 0) {
-            return productRepository.findAll().stream().map(productMapper::toDto).toList();
+        if (categoryId == null) {
+            return productRepository.findAllWithCategoryId().stream().map(productMapper::toDto).toList();
         }
 
-        var category = new Category();
-        category.setId(categoryId);
-        var product = new Product();
-        product.setCategory(category);
-        Example<Product> example = Example.of(product);
-        return productRepository.findAll(example).stream().map(productMapper::toDto).toList();
+        return productRepository.findByCategoryId(categoryId).stream().map(productMapper::toDto).toList();
     }
 
     @GetMapping("/{id}")

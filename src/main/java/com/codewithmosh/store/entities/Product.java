@@ -2,6 +2,7 @@ package com.codewithmosh.store.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.processing.Exclude;
 
 import java.math.BigDecimal;
 
@@ -27,7 +28,7 @@ public class Product {
     @Column(name = "price")
     private BigDecimal price;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 }

@@ -1,7 +1,6 @@
 package com.codewithmosh.store.controllers;
 
 import com.codewithmosh.store.dtos.ProductDto;
-import com.codewithmosh.store.dtos.ProductRequest;
 import com.codewithmosh.store.entities.Product;
 import com.codewithmosh.store.mappers.ProductMapper;
 import com.codewithmosh.store.repositories.CategoryRepository;
@@ -51,15 +50,16 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(
-            @RequestBody ProductRequest request,
+            @RequestBody ProductDto productDto,
             UriComponentsBuilder uriComponentsBuilder
             ){
-        Product product = productMapper.toEntity(request);
-        if (request.getCategoryId() != null) {
-            categoryRepository.findById(request.getCategoryId().byteValue())
-                .ifPresent(product::setCategory);
+        var category = categoryRepository.findById(productDto.getCategoryId()).orElse(null);
+        if (category == null) {
+            return ResponseEntity.badRequest().build();
         }
 
+        Product product = productMapper.toEntity(productDto);
+        product.setCategory(category);
         productRepository.save(product);
 
         var uri = uriComponentsBuilder.path("/products/{id}").buildAndExpand(product.getId()).toUri();
@@ -69,21 +69,24 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(
             @PathVariable(name = "id") Long id,
-            @RequestBody ProductRequest request
+            @RequestBody ProductDto productDto
     ) {
-        Product product = productRepository.findById(id).orElse(null);
+        var category = categoryRepository.findById(productDto.getCategoryId()).orElse(null);
+        if (category == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        var product = productRepository.findById(id).orElse(null);
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
 
-        productMapper.update(request, product);
-        if (request.getCategoryId() != null) {
-            categoryRepository.findById(request.getCategoryId().byteValue())
-                .ifPresent(product::setCategory);
-        }
-
+        productMapper.update(productDto, product);
+        product.setCategory(category);
         productRepository.save(product);
-        return ResponseEntity.ok(productMapper.toDto(product));
+
+        productDto.setId(product.getId());
+        return ResponseEntity.ok(productDto);
     }
 
     @DeleteMapping("/{id}")

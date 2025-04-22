@@ -10,6 +10,7 @@ import com.codewithmosh.store.repositories.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,7 +45,7 @@ public class CartController {
             @PathVariable UUID cartId,
             @RequestBody AddItemToCartRequest request
     ) {
-        var cart = cartRepository.findById(cartId).orElse(null);
+        var cart = cartRepository.fetchWithCartItemsById(cartId).orElse(null);
         if (cart == null) {
             return ResponseEntity.notFound().build();
         }
@@ -54,7 +55,7 @@ public class CartController {
             return ResponseEntity.badRequest().body(Map.of("productId", "Product not found"));
         }
 
-        var cartItem = cart.getCartItems().stream().filter(item -> item.getProduct().getId().equals(product.getId()))
+        var cartItem = cart.getItems().stream().filter(item -> item.getProduct().getId().equals(product.getId()))
                 .findFirst().orElse(null);
 
         if (cartItem != null) {
@@ -64,12 +65,21 @@ public class CartController {
             cartItem.setProduct(product);
             cartItem.setQuantity(1);
             cartItem.setCart(cart);
-            cart.getCartItems().add(cartItem);
+            cart.getItems().add(cartItem);
         }
         cartRepository.save(cart);
 
         var cartItemDto = cartMapper.toDto(cartItem);
         return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+    }
+
+    @GetMapping("/{cartId}")
+    public ResponseEntity<CartDto> getCartById(@PathVariable UUID cartId) {
+        var cart = cartRepository.fetchWithCartItemsById(cartId).orElse(null);
+        if (cart == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(cartMapper.toDto(cart));
     }
 
 }

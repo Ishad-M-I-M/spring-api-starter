@@ -11,9 +11,8 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +33,7 @@ import java.util.Set;
 public class UserController {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping("")
     public ResponseEntity<List<UserDto>> getUsers(
@@ -48,7 +47,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getUserById(@PathVariable  Long id) {
+    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             return ResponseEntity.notFound().build();
@@ -64,6 +63,7 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("email", "Email is already registered"));
         }
         var user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
 
         var userDto = userMapper.toDto(user);

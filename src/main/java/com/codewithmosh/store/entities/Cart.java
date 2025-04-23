@@ -56,6 +56,7 @@ public class Cart {
             cartItem = new CartItem();
             cartItem.setProduct(product);
             cartItem.setQuantity(1);
+            cartItem.setCart(this);
             items.add(cartItem);
             return cartItem;
         }

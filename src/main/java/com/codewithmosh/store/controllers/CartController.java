@@ -2,7 +2,6 @@ package com.codewithmosh.store.controllers;
 
 import com.codewithmosh.store.dtos.AddItemToCartRequest;
 import com.codewithmosh.store.dtos.CartDto;
-import com.codewithmosh.store.dtos.CartItemDto;
 import com.codewithmosh.store.dtos.UpdateCartItemRequest;
 import com.codewithmosh.store.entities.Cart;
 import com.codewithmosh.store.entities.CartItem;
@@ -59,18 +58,7 @@ public class CartController {
             return ResponseEntity.badRequest().body(Map.of("productId", "Product not found"));
         }
 
-        var cartItem = cart.getItems().stream().filter(item -> item.getProduct().getId().equals(product.getId()))
-                .findFirst().orElse(null);
-
-        if (cartItem != null) {
-            cartItem.setQuantity(cartItem.getQuantity() + 1);
-        } else {
-            cartItem = new CartItem();
-            cartItem.setProduct(product);
-            cartItem.setQuantity(1);
-            cartItem.setCart(cart);
-            cart.getItems().add(cartItem);
-        }
+        var cartItem = cart.addItem(product);
         cartRepository.save(cart);
 
         var cartItemDto = cartMapper.toDto(cartItem);
@@ -91,8 +79,7 @@ public class CartController {
             @PathVariable("cartId") UUID cartId,
             @PathVariable("productId") Long productId,
             @Valid @RequestBody UpdateCartItemRequest request
-            )
-    {
+    ) {
         var cart = cartRepository.fetchWithCartItemsById(cartId).orElse(null);
         if (cart == null) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
@@ -100,10 +87,7 @@ public class CartController {
             );
         }
 
-        var cartItem = cart.getItems().stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
-                .findFirst()
-                .orElse(null);
+        var cartItem = cart.getCartItem(productId);
 
         if (cartItem == null) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(

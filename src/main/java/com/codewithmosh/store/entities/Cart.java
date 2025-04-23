@@ -39,4 +39,25 @@ public class Cart {
                 .map(CartItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    public CartItem getCartItem(Long productId) {
+        return items.stream()
+                .filter(cartItem -> cartItem.getProduct().getId().equals(productId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public CartItem addItem(Product product) {
+        CartItem cartItem = getCartItem(product.getId());
+        if (cartItem != null) {
+            cartItem.setQuantity(cartItem.getQuantity() + 1);
+            return cartItem;
+        } else {
+            cartItem = new CartItem();
+            cartItem.setProduct(product);
+            cartItem.setQuantity(1);
+            items.add(cartItem);
+            return cartItem;
+        }
+    }
 }

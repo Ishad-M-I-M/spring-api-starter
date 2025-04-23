@@ -109,7 +109,7 @@ public class CartController {
     ) {
         var cart = cartRepository.fetchWithCartItemsById(cartId).orElse(null);
         if (cart == null) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     Map.of("error", "Cart not found")
             );
         }
@@ -118,4 +118,18 @@ public class CartController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{cartId}/items")
+    public ResponseEntity<?> clearCart(
+            @PathVariable("cartId") UUID cartId
+    ) {
+        var cart = cartRepository.fetchWithCartItemsById(cartId).orElse(null);
+        if (cart == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    Map.of("error", "Cart not found")
+            );
+        }
+        cart.clearItems();
+        cartRepository.save(cart);
+        return ResponseEntity.noContent().build();
+    }
 }

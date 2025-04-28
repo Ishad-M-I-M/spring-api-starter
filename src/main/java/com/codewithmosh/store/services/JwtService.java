@@ -49,6 +49,7 @@ public class JwtService {
                 .setSubject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("name", user.getName())
+                .claim("role", user.getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + tokenExpirationTime * 1000))
                 .signWith(jwtConfig.getSecretKey())

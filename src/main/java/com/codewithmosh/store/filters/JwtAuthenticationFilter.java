@@ -6,11 +6,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -31,13 +29,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        var token = authHeader.replace("Bearer ", "");
-        if (!jwtService.validateToken(token)) {
+        var token = jwtService.parse(authHeader.replace("Bearer ", ""));
+        if (!token.isValid()) {
             filterChain.doFilter(request, response);
             return;
         }
-        var role = jwtService.getRoleFromToken(token);
-        var userId = jwtService.getUserIdFromToken(token);
+        var role = token.getRole();
+        var userId = token.getUserId();
         var authentication = new UsernamePasswordAuthenticationToken(
                 userId,
                 null,

@@ -64,4 +64,8 @@ public class Order {
         });
         return order;
     }
+
+    public boolean isPlacedBy(User user) {
+        return customer.equals(user);
+    }
 }

@@ -1,0 +1,18 @@
+{
+  "name": "spring-api-starter",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/spring-api-starter",
+  "runServices": ["app", "postgres"],
+  "forwardPorts": [8080, 5432],
+  "postCreateCommand": "./mvnw -q -DskipTests dependency:go-offline",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-boot-dev-pack",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}
